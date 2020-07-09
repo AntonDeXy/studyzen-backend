@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './user.model';
-import { Model } from "mongoose";
-import * as bcrypt from 'bcrypt';
+import { Injectable } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { User } from './user.model'
+import { Model } from "mongoose"
+import * as bcrypt from 'bcrypt'
+
+type UserServiceResponse = {
+  user?: User,
+  error?: string
+}
 
 @Injectable()
 export class UsersService {
@@ -11,10 +16,25 @@ export class UsersService {
   ) { }
 
   async getAllUsers():Promise<User[]> {
-    return await this.userModel.find()
+    return await this.userModel
+      .find()
+      .populate([
+        {
+          path: 'teacher',
+          populate: {
+            path: 'classesAsTeacher'
+          }
+        },
+        {
+          path: 'student',
+          populate: {
+            path: 'classesAsStudent'
+          }
+        }
+      ])
   }
 
-  async createUser(username: string, password: string, repeatPassword: string):Promise<{user?: User, error?: string}> {
+  async createUser(username: string, password: string, repeatPassword: string):Promise<UserServiceResponse> {
     username.toLowerCase()
 
     const isUsernameTaken = await this.userModel.findOne({username: username}).exec()
@@ -45,10 +65,26 @@ export class UsersService {
     return {user: await user.save()}
   }
 
-  async login(username: string, password: string): Promise<{user?: User, error?: string}> {
+  async login(username: string, password: string): Promise<UserServiceResponse> {
     username.toLowerCase()
     
-    const isUserExist = await this.userModel.findOne({username: username}).exec()
+    const isUserExist = await this.userModel
+      .findOne({username: username})
+      .populate([
+        {
+          path: 'teacher',
+          populate: {
+            path: 'classesAsTeacher'
+          }
+        },
+        {
+          path: 'student',
+          populate: {
+            path: 'classesAsStudent'
+          }
+        }
+      ])
+      .exec()
   
     if (!isUserExist) {
       return {error: 'User with this username does not exist'}
