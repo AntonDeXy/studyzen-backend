@@ -1,4 +1,5 @@
 import * as mongoose from 'mongoose'
+import { Class } from 'src/classes/class.model'
 
 export const UserSchema = new mongoose.Schema({
   email: {
@@ -62,10 +63,10 @@ export interface User extends mongoose.Document {
   language: string
   registerDate: string
   role: string
-  // teacher: {
-  //   classesAsTeacher: Class
-  // }
-  // student: {
-  //   classesAsStudent: Class
-  // }
+  teacher: {
+    classesAsTeacher: Class
+  }
+  student: {
+    classesAsStudent: Class
+  }
 }
